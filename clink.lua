@@ -531,7 +531,9 @@ local function jj_prompt_filter()
         parent_change, parent_commit, parent_msg = string.match(output, "Parent commit: (%a+) (%S+) ([^\n]+)\n")
     end
 
-    local clean = nil ~= output:find("^The working copy is clean\n")
+    local clean1 = nil ~= output:find("^The working copy is clean\n")
+    local clean2 = nil ~= output:find("^The working copy has no changes.\n")
+    local clean = clean1 or clean2
     --print("clean", clean)
     -- TODO this is identical(?) to the "clean" above, which is safer
     --local empty = nil ~= output:find("(empty)")
