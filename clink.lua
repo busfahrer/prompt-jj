@@ -549,7 +549,8 @@ local function jj_prompt_filter()
         dirty = get_dirty_color(),
         conflict = get_conflict_color(),
         nostatus = get_unknown_color(),
-        empty = get_cwd_color()
+        empty = get_cwd_color(),
+        undescribed = get_lamb_color()
     }
 
     -- TODO when to set nostatus?
@@ -559,7 +560,7 @@ local function jj_prompt_filter()
         color = colors.clean
     else
         if clean then
-            color = colors.empty
+            color = colors.undescribed
         else
             color = colors.dirty
         end
