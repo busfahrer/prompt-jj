@@ -475,43 +475,12 @@ local function get_git_info_table()
 end
 
 local function jj_prompt_filter()
-    -- TODO GET UNIQUE PREFIX FROM OUTPUT AND INCLUDE IN PROMPT!!!
-    -- TODO branch names
-    --
-    -- matrix
-    -- unmodified, no message => white?
-    -- unmodified,    message => ???
-    --   modified, no message => yellow
-    --   modified,    message => white (has to be because we can edit old commit)
-    --   maybe add (empty) prompt?
-
-    -- clean: 37;1
-    -- nostatus: 37;1
-    -- conflict: 31;1
-    -- dirty: 33;3
-    --print("my dirty: \27[33;3m DIRTY")
-
-    -- git prompt:
-    -- (tall)
-    -- (tall -> origin)
-    -- with changes: same, but yellow
-    -- unpushed changes: nothing
-    --
-    -- jj:
-    -- modified with no description: yellow
-    -- modified with desc: white
-    -- empty with description: green (empty)
     local cmd = "jj st 2>&1"
     local f = assert(io.popen(cmd, 'r'))
     local output = assert(f:read('*a'))
     local rc = {f:close()}
     local is_jj = rc[1]
-    --print("is_jj", is_jj)
-    --print("JJ FILTER")
-    --print("old prompt", clink.prompt.value)
-    --clink.prompt.value = string.gsub(clink.prompt.value, "{git}", "REPLACED GIT")
-    --print("new prompt", clink.prompt.value)
-    --clink.prompt.value = "FULL REPLACE" -- works
+
     if not clink.prompt.value:find("{git}") then
         return false
     end
@@ -526,26 +495,20 @@ local function jj_prompt_filter()
     if not change then
         change, commit, msg = string.match(output, "Working copy : (%a+) (%S+) ([^\n]+)\n")
     end
+    -- TODO parent's infos are unused so far
     local parent_change, parent_commit, parent_bookmarks, parent_msg = string.match(output, "Parent commit: (%a+) (%S+) ([^\n]+) | ([^\n]+)\n")
     if not parent_change then
         parent_change, parent_commit, parent_msg = string.match(output, "Parent commit: (%a+) (%S+) ([^\n]+)\n")
     end
 
+    -- TODO Different jj versions have different messages
     local clean1 = nil ~= output:find("^The working copy is clean\n")
     local clean2 = nil ~= output:find("^The working copy has no changes.\n")
     local clean = clean1 or clean2
-    --print("clean", clean)
-    -- TODO this is identical(?) to the "clean" above, which is safer
-    --local empty = nil ~= output:find("(empty)")
-    --print("empty", empty)
-    local desc = nil == output:find("(no description set)")
-    --print("desc", desc)
-    local conflict = nil ~= output:find("(conflict)")
-    --print("confl.", conflict)
-    --
 
-    --local color = "\27[37;1m"
-    -- Colors for git status
+    local desc = nil == output:find("(no description set)")
+    local conflict = nil ~= output:find("(conflict)")
+
     local colors = {
         clean = get_clean_color(),
         dirty = get_dirty_color(),
@@ -747,7 +710,9 @@ end
 
 -- insert the set_prompt at the very beginning so that it runs first
 clink.prompt.register_filter(set_prompt_filter, 1)
-clink.prompt.register_filter(jj_prompt_filter, 49) -- We need to override the git prompt
+-- We need to override the git prompt, since jj might be colocated with a git repo.
+-- In that case, we want to show the jj info. Therefore, we use a higher prio.
+clink.prompt.register_filter(jj_prompt_filter, 49)
 clink.prompt.register_filter(hg_prompt_filter, 50)
 clink.prompt.register_filter(git_prompt_filter, 50)
 clink.prompt.register_filter(svn_prompt_filter, 50)
