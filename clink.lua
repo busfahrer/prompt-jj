@@ -578,7 +578,12 @@ local function jj_prompt_filter()
         empty_string = colors.empty.." (empty)"
     end
 
-    clink.prompt.value = string.gsub(clink.prompt.value, "{git}", " "..color.."("..verbatim(change)..")"..empty_string)
+    local bookmarks_string = ""
+    if bookmarks then
+        bookmarks_string = colors.clean.." ["..bookmarks.."]"
+    end
+
+    clink.prompt.value = string.gsub(clink.prompt.value, "{git}", " "..color.."("..verbatim(change)..")"..empty_string..bookmarks_string)
 
     return false
 end
